@@ -10,6 +10,8 @@
 namespace lcx{
 
 class HttpRequest;
+class Epoll;
+class ThreadPool;
 
 class HttpServer{
 
@@ -26,6 +28,13 @@ private:
 
 private:
     using ListenRequestPtr = std::unique_ptr<HttpRequest>;
+    using EpollPtr = std::unique_ptr<Epoll>;
+    using ThreadPoolPtr = std::unique_ptr<ThreadPool>;
+    
+    int mPort;  //监听端口
+    int mListenFd; //监听文件描述符
+
+
 };
 
 
