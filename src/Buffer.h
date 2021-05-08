@@ -13,10 +13,8 @@ class Buffer
 {
 
 public:
-    Buffer() : mBuffer(INIT_SIZE), mReaderIndex(0), mWriterIndex(0)
-    {
-    }
-    ~Buffer();
+    Buffer() : mBuffer(INIT_SIZE), mReaderIndex(0), mWriterIndex(0){}
+    ~Buffer(){}
 
 private:
 

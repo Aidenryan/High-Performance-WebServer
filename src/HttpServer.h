@@ -29,14 +29,14 @@ private:
 private:
     using ListenRequestPtr = std::unique_ptr<HttpRequest>;
     using EpollPtr = std::unique_ptr<Epoll>;
-    using ThreadPoolPtr = std::unique_ptr<ThreadPool>;
-    
+    using ThreadPoolPtr = std::shared_ptr<ThreadPool>;
+
     int mPort;  //监听端口
     int mListenFd; //监听文件描述符
 
-
+    ListenRequestPtr mListenRequst; //监听套接字的HttpRequest实例
+    EpollPtr mEpoll;        //epoll实例
+    ThreadPoolPtr mThreadPool;  //线程池
 };
 
-
-    
 } // namespace lcx
