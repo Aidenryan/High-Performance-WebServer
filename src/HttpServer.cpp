@@ -25,4 +25,31 @@ void HttpServer::run()
 {
     //注册监听文件描述符到epoll,设定为可读事件，ET模式
     mEpoll->add(mListenFd, mListenRequst.get(), (EPOLLIN | EPOLLET));
+    //注册新连接回调函数
+    mEpoll->setConnection(std::bind(&HttpServer::acceptNewConnection, this));
+    //注册连接关闭回调函数
+    mEpoll->setCloseConnection(std::bind(&HttpServer::closeConnection, this, std::placeholders::_1));
+    //注册请求处理回调函数
+    mEpoll->setRequest(std::bind(&HttpServer::dealRequest, this, std::placeholders::_1));
+    //注册响应处理回调函数
+    mEpoll->setResponse(std::bind(&HttpServer::dealResponse, this, std::placeholders::_1));
+
+    //时间循环监听
+    while(1)
+    {
+        //超时时间
+        int timeMs = 1; //TODO
+
+        //等待事件发生
+        int eventsNum = mEpoll->wait(timeMs);
+
+        if(eventsNum > 0)
+        {
+            // 分发事件处理函数
+            mEpoll->dealEvent(mListenFd, mThreadPool, eventsNum);
+        }
+
+        //TODO
+    }
+    
 }

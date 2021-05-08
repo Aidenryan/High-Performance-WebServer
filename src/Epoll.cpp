@@ -1,4 +1,6 @@
 #include "Epoll.h"
+#include "ThreadPool.h"
+
 #include <assert.h>
 #include <unistd.h> //close
 using namespace lcx;
@@ -43,3 +45,14 @@ int Epoll::mod(int fd, HttpRequest* req, int events)
     int ret = ::epoll_ctl(mEpollFd, EPOLL_CTL_MOD, fd, &event);
     return ret;
 }
+
+int Epoll::wait(int timeOutMs)   
+{
+
+} 
+
+void Epoll::dealEvent(int listenfd, std::shared_ptr<ThreadPool> &threadpool, int eventsNum)
+{
+
+}
+

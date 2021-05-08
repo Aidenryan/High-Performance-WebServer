@@ -22,9 +22,9 @@ public:
 
 private:
     void acceptNewConnection(); // 接受新连接
-    void closeConnection(); //关闭连接
-    void dealRequest();     //处理请求
-    void dealResponse();    //处理响应
+    void closeConnection(HttpRequest *req); //关闭连接
+    void dealRequest(HttpRequest *req);     //处理请求
+    void dealResponse(HttpRequest *req);    //处理响应
 
 private:
     using ListenRequestPtr = std::unique_ptr<HttpRequest>;
