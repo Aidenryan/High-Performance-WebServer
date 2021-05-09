@@ -31,6 +31,10 @@ public:
     HttpRequest(int fd);
     ~HttpRequest();
 
+    inline int fd(){ return mFd; }//返回文件描述符
+    int reqRead(int *readError);    //读数据
+    int reqWrite(int *WriteError);  //写数据
+    inline bool isWorking() const {return mWorking;} //判断是否在工作
 private:
     //网络通信相关
     int mFd;

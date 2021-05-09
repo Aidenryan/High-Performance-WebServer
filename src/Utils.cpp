@@ -33,7 +33,7 @@ int Utils::createListenFd(int port)
     sockaddr_in serverAddr; 
     ::bzero(&serverAddr, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = ::htons(static_cast<unsigned short>(port));
+    serverAddr.sin_port = htons(static_cast<unsigned short>(port)); //!不知道为什么在htons前面加上::就会报错
     serverAddr.sin_addr.s_addr = ::htonl(INADDR_ANY);
 
     //绑定
