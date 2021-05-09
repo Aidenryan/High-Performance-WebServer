@@ -45,8 +45,29 @@ public:
     inline bool finishParse() {return mState == GotAll;}    // 是否解析完一个报文
     void resetParse();  // 重置解析状态
 
-
+    std::string getHeader(const std::string &filed ) const;
     bool keepAlive() const; //判断是否为长连接
+
+private:
+    //解析请求行
+    bool parseRequestLine(const char* begin, const char* end);
+    //增加报文头
+    void addHeader(const char* start, const char* colon, const char* end);
+    //设置请求方法
+    bool setMethod(const char* begin, const char* end);
+    //设置URL路径
+    void setURLPath(const char* begin, const char* end)
+    {
+        std::string subPath;
+        subPath.assign(begin, end);
+        if(subPath == "/")
+            subPath = "/index.html";
+        mURL_Path = STATIC_ROOT + subPath; //设置资源请求路径
+    }
+    //设置URL参数
+    void setURLPara(const char* begin, const char* end){ mURL_Para.assign(begin, end); }
+    //设置Http版本
+    void setHttpVersion(Version version) {mVersion = version; };
 
 private:
     //网络通信相关

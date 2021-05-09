@@ -65,12 +65,23 @@ public:
     inline char* beginWrite() { buffBegin() + mWriterIndex; }
     inline const char* beginWrite() const { buffBegin() + mWriterIndex; }
 
+    //找\r\n
     const char* findCRLF() const
     {
         const char CRLF[] = "\r\n";
         const char* crlf = std::search(peek(), beginWrite(), CRLF, CRLF+2);
 
         return crlf == beginWrite() ? nullptr : crlf;
+    }
+
+    void retrieveUntil(const char* end) //更改取出数据标记直到end
+    {
+        assert(peek() <= end);
+        assert(end <= beginWrite());
+        size_t len = static_cast<size_t>(end - peek());
+        assert(len <= readableBytes());
+        
+        mReaderIndex += len;
     }
 
 private:

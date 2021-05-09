@@ -156,7 +156,6 @@ void HttpServer::dealRequest(HttpRequest *req)
     }
 }
 
-
 //LT模式
 void HttpServer::dealResponse(HttpRequest *req)
 {
