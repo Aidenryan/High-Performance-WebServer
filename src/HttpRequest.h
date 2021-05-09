@@ -33,8 +33,21 @@ public:
 
     inline int fd(){ return mFd; }//返回文件描述符
     int reqRead(int *readError);    //读数据
-    int reqWrite(int *WriteError);  //写数据
+    int reqWrite(int *writeError);  //写数据
+
+    inline int writeableBytes() { return mWriteBuff.readableBytes(); }
+
+    inline void setWorking() {mWorking = true;}  //设置工作状态
+    inline void setNoWorking() {mWorking = false;}
     inline bool isWorking() const {return mWorking;} //判断是否在工作
+
+    bool parseRequest();//解析Http报文
+    inline bool finishParse() {return mState == GotAll;}    // 是否解析完一个报文
+    void resetParse();  // 重置解析状态
+
+
+    bool keepAlive() const; //判断是否为长连接
+
 private:
     //网络通信相关
     int mFd;

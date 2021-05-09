@@ -41,3 +41,8 @@ ThreadPool::~ThreadPool()
 {
 
 }
+
+void ThreadPool::pushJob(const JobFunction &job)
+{
+    
+}

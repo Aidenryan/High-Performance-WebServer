@@ -106,11 +106,111 @@ void HttpServer::dealRequest(HttpRequest *req)
     assert(req != nullptr);
     int fd = req->fd();
 
-    int readError;
-    int nRead = req->reqRead(&readError);
+    int readErrno;
+    int nRead = req->reqRead(&readErrno);
 
+    //客户端断开连接
+    if(nRead == 0)
+    {
+        req->setNoWorking();
+        closeConnection(req);
+        return;
+    }
+
+    // 非EAGAIN错误，断开连接
+    if(nRead < 0 && readErrno != EAGAIN)
+    {
+        req->setNoWorking();
+        closeConnection(req);
+        return;
+    }
+
+    // EAGAIN错误则释放线程使用权，并监听下次可读事件epoll_ -> mod(...)
+    if(nRead < 0 && readErrno != EAGAIN)
+    {
+        req->setNoWorking();
+        mEpoll->mod(fd, req, EPOLLIN | EPOLLONESHOT);
+        //Todo
+        return;
+    }
+
+    //如果解析报文出错
+    if(!req->parseRequest())
+    {
+        //发送400报文
+        //TODO 响应
+
+        //关闭连接
+        int writeErrno;
+        req->reqWrite(&writeErrno);
+        req->setNoWorking();
+        closeConnection(req);
+        return;
+    }
+
+    //解析完成
+    if(req->finishParse())
+    {
+        //TODO 响应
+        mEpoll->mod(fd, req, (EPOLLIN | EPOLLOUT | EPOLLONESHOT));
+    }
 }
+
+
+//LT模式
 void HttpServer::dealResponse(HttpRequest *req)
 {
+    //TODO
+    assert(req != nullptr);
+
+    int fd = req->fd();
+    int toWrite = req->writeableBytes();
+
+    if(toWrite == 0)
+    {
+        req->setNoWorking();
+        mEpoll->mod(fd, req, (EPOLLIN | EPOLLONESHOT));
+        //TODO
+        return;
+    }
+
+    int writeErrno;
+    int ret = req->reqWrite(&writeErrno);
+
+    if(ret < 0 )
+    {
+        if(writeErrno == EAGAIN)
+        {
+            mEpoll->mod(fd, req, (EPOLLIN | EPOLLONESHOT | EPOLLOUT));
+        }
+        else if(writeErrno != EAGAIN) // 非EAGAIN错误，断开连接
+        {
+            req->setNoWorking();
+            closeConnection(req);
+        }
+        return;
+    }
+
+    if(ret == toWrite)
+    {
+        if(req->keepAlive())
+        {
+            req->resetParse();
+            req->setNoWorking();
+            mEpoll->mod(fd, req, (EPOLLIN | EPOLLONESHOT));
+            //TODO
+        }
+        else
+        {
+            req->setNoWorking();
+            closeConnection(req);
+        }
+        return;
+    }
+
+    mEpoll->mod(fd, req, (EPOLLIN | EPOLLONESHOT | EPOLLOUT));
+    req->setNoWorking();    //是因为LT模式，所以设置为不工作了吗？我感觉这里是没有写完呀
+    //TODO
+    return;
 
 }

@@ -14,5 +14,7 @@ int main(int argc, char* argv[])
     int port = atoi( argv[1] );
     int numThread = atoi( argv[2] );
 
+    lcx::HttpServer server(port, numThread);
+    server.run();
     return 0;
 }
