@@ -39,10 +39,24 @@ ThreadPool::ThreadPool(int numWokers) : mStop(false)
 
 ThreadPool::~ThreadPool()
 {
+    {
+        std::unique_lock<std::mutex> lock(mLock);
+        mStop = true;
+    }
 
+    mCond.notify_all();
+    for(auto & thread : mThreads)
+    {
+        thread.join();
+    }
 }
 
 void ThreadPool::pushJob(const JobFunction &job)
 {
-    
+    {
+        std::unique_lock<std::mutex> lock(mLock);
+        mJobs.push(job);
+    }
+
+    mCond.notify_one();
 }

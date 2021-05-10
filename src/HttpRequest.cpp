@@ -2,8 +2,11 @@
 #include <unistd.h>
 using namespace lcx;
 
-HttpRequest::HttpRequest(int fd) : mFd(fd), mWorking(false), //TODO
-                                    mState(ExpectRequestLine), mMethod(Invalid), mVersion(Unknown)
+HttpRequest::HttpRequest(int fd) : mFd(fd), 
+                mWorking(false), //TODO
+                mState(ExpectRequestLine), 
+                mMethod(Invalid), 
+                mVersion(Unknown)
 {
     assert(mFd >= 0);
 }
@@ -123,11 +126,12 @@ bool HttpRequest::parseRequestLine(const char* begin, const char* end)
             const char* question = std::find(start, space, '?');
             if(question != space)
             {
-
+                setURLPath(start, question);
+                setURLPara(question, space);
             }
             else
             {
-                /* code */
+                setURLPath(start, space);
             }
 
             start = space + 1;
@@ -167,7 +171,23 @@ bool HttpRequest::setMethod(const char* begin, const char* end)
 
 void HttpRequest::addHeader(const char* start, const char* colon, const char* end)
 {
+    std::string filed(start, colon);
+    ++colon;
 
+    while (colon < end && *colon == ' ' )
+    {
+        ++colon;
+    }
+
+    std::string vlaue(colon, end);
+    while (!vlaue.empty() && vlaue[vlaue.size() - 1] == ' ') //去掉末尾空格
+    {
+        vlaue.resize(vlaue.size() - 1);
+    }
+    
+    //可以改成emplace
+    mHeaders[filed] = vlaue;
+    
 }
 
 void HttpRequest::resetParse()
@@ -178,4 +198,21 @@ void HttpRequest::resetParse()
     mURL_Path = ""; // URL路径
     mURL_Para = ""; // URL参数
     mHeaders.clear(); // 报文头部
+}
+
+std::string HttpRequest::getMethod() const
+{
+    std::string res;
+    if(mMethod == Get)
+        res = "GET";
+    else if(mMethod == Post)
+        res = "POST";
+    else if(mMethod == Head)
+        res = "HEAD";
+    else if(mMethod == Put)
+        res = "Put";
+    else if(mMethod == Delete)
+        res = "DELETE";
+    
+    return res;
 }

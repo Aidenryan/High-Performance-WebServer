@@ -41,17 +41,29 @@ public:
     }
 
     //第一个可读位置
-    inline const char* peek() const
+    const char* peek() const
     {
         return buffBegin() + mReaderIndex;
     }
-    //在初始化mBuffer空间不够用时候，增加空间
+
+    //在初始化mBuffer空间不够用时候，增加空间,并写入
     void append(const char* data, size_t len)
     {
         ensureWritableBytes(len);
         std::copy(data, data + len, beginWrite());
         mWriterIndex += len; //修改mWriterIndex位置
     }
+
+    void append(const std::string& str)//插入数据
+    {
+        append(str.data(), str.length());
+    }
+
+    void append(const void* data, size_t len) // 插入数据
+    { append(static_cast<const char*>(data), len); }
+
+    void append(const Buffer& otherBuff) // 把其它缓冲区的数据添加到本缓冲区
+    { append(otherBuff.peek(), otherBuff.readableBytes()); }
 
     void ensureWritableBytes(size_t len) // 确保缓冲区有足够空间
     {
@@ -62,8 +74,8 @@ public:
         assert(writeableBytes() >= len);
     }
 
-    inline char* beginWrite() { buffBegin() + mWriterIndex; }
-    inline const char* beginWrite() const { buffBegin() + mWriterIndex; }
+    char* beginWrite() { return buffBegin() + mWriterIndex; }
+    const char* beginWrite() const { return buffBegin() + mWriterIndex; }
 
     //找\r\n
     const char* findCRLF() const
@@ -74,6 +86,11 @@ public:
         return crlf == beginWrite() ? nullptr : crlf;
     }
 
+    // const char* findCRLF(const char* start) const
+    // {
+    //     //TODO
+    // }
+
     void retrieveUntil(const char* end) //更改取出数据标记直到end
     {
         assert(peek() <= end);
@@ -82,6 +99,12 @@ public:
         assert(len <= readableBytes());
         
         mReaderIndex += len;
+    }
+
+    inline void retrieveAll()
+    {
+        mReaderIndex = 0;
+        mWriterIndex = 0;
     }
 
 private:

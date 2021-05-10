@@ -1,11 +1,11 @@
 #pragma once
 
-#include <functional>
-#include <memory>
+#include <functional> //function
+#include <memory>      // shared_ptr
 #include <vector>
-#include <sys/epoll.h>
+#include <sys/epoll.h>  // epoll_event
 
-#define MAXEVENTS 1024
+#define MAXEVENTS 1024 //最大事件数目
 
 namespace lcx{
 

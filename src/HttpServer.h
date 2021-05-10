@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+#include <memory>// unique_ptr
 #include <mutex>
 
 #define TIMEOUTMS -1 // epoll_wait超时时间，-1表示不设超时
@@ -30,13 +30,15 @@ private:
     using ListenRequestPtr = std::unique_ptr<HttpRequest>;
     using EpollPtr = std::unique_ptr<Epoll>;
     using ThreadPoolPtr = std::shared_ptr<ThreadPool>;
+    //TODO
 
     int mPort;  //监听端口
     int mListenFd; //监听文件描述符
 
     ListenRequestPtr mListenRequst; //监听套接字的HttpRequest实例
-    EpollPtr mEpoll;        //epoll实例
+    EpollPtr mEpoll;  //epoll实例
     ThreadPoolPtr mThreadPool;  //线程池
+    //TODO
 };
 
 } // namespace lcx

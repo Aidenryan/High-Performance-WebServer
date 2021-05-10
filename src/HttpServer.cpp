@@ -3,6 +3,8 @@
 #include "HttpRequest.h"
 #include "Epoll.h"
 #include "Utils.h"
+#include "ThreadPool.h"
+#include "HttpResponse.h"
 
 #include <assert.h>
 #include <sys/socket.h> //accept
@@ -12,8 +14,12 @@ using namespace lcx;
 
 //注意智能指针的初始化方法
 HttpServer::HttpServer(int port, int numThread)
-    : mPort(port), mThreadPool(new ThreadPool(numThread)), mListenFd(Utils::createListenFd(port)),
-    mListenRequst(new HttpRequest(mListenFd)), mEpoll(new Epoll())
+    : mPort(port), 
+    mThreadPool(new ThreadPool(numThread)), 
+    mListenFd(Utils::createListenFd(port)),
+    mListenRequst(new HttpRequest(mListenFd)), 
+    mEpoll(new Epoll()) 
+    //TODO
 {
     assert(mListenFd >= 0);
 }
@@ -43,7 +49,7 @@ void HttpServer::run()
     while(1)
     {
         //超时时间
-        int timeMs = 1; //TODO
+        int timeMs = 100; //TODO
 
         //等待事件发生
         int eventsNum = mEpoll->wait(timeMs);
@@ -126,7 +132,7 @@ void HttpServer::dealRequest(HttpRequest *req)
     }
 
     // EAGAIN错误则释放线程使用权，并监听下次可读事件epoll_ -> mod(...)
-    if(nRead < 0 && readErrno != EAGAIN)
+    if(nRead < 0 && readErrno == EAGAIN)
     {
         req->setNoWorking();
         mEpoll->mod(fd, req, EPOLLIN | EPOLLONESHOT);
@@ -138,7 +144,8 @@ void HttpServer::dealRequest(HttpRequest *req)
     if(!req->parseRequest())
     {
         //发送400报文
-        //TODO 响应
+        HttpResponse response(400, "", false);
+        req->appendOutBuffer(response.makeResponse());
 
         //关闭连接
         int writeErrno;
@@ -151,7 +158,8 @@ void HttpServer::dealRequest(HttpRequest *req)
     //解析完成
     if(req->finishParse())
     {
-        //TODO 响应
+        HttpResponse response(200, req->getPath(), req->keepAlive());
+        req->appendOutBuffer(response.makeResponse());
         mEpoll->mod(fd, req, (EPOLLIN | EPOLLOUT | EPOLLONESHOT));
     }
 }
@@ -192,7 +200,7 @@ void HttpServer::dealResponse(HttpRequest *req)
 
     if(ret == toWrite)
     {
-        if(req->keepAlive())
+        if(req->keepAlive()) //长1连接
         {
             req->resetParse();
             req->setNoWorking();

@@ -9,8 +9,9 @@
 
 namespace lcx{
 
-class HttpRequest{
+//TODO
 
+class HttpRequest{
 public:
     //枚举类型
     enum HttpRequestParseState{ //Http请求状态
@@ -35,7 +36,10 @@ public:
     int reqRead(int *readError);    //读数据
     int reqWrite(int *writeError);  //写数据
 
+    void appendOutBuffer(const Buffer& buf) { mReadBuff.append(buf); }
     inline int writeableBytes() { return mWriteBuff.readableBytes(); }
+
+    //TODO
 
     inline void setWorking() {mWorking = true;}  //设置工作状态
     inline void setNoWorking() {mWorking = false;}
@@ -45,6 +49,9 @@ public:
     inline bool finishParse() {return mState == GotAll;}    // 是否解析完一个报文
     void resetParse();  // 重置解析状态
 
+    std::string getPath() const { return mURL_Path; }
+    std::string getPara() const { return mURL_Para; }
+    std::string getMethod() const;
     std::string getHeader(const std::string &filed ) const;
     bool keepAlive() const; //判断是否为长连接
 
