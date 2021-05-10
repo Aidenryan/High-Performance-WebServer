@@ -36,7 +36,7 @@ public:
     int reqRead(int *readError);    //读数据
     int reqWrite(int *writeError);  //写数据
 
-    void appendOutBuffer(const Buffer& buf) { mReadBuff.append(buf); }
+    void appendOutBuffer(const Buffer& buf) { mWriteBuff.append(buf); } //这里误把mWriteBuff写成mReadBuff导致bug
     inline int writeableBytes() { return mWriteBuff.readableBytes(); }
 
     //TODO
