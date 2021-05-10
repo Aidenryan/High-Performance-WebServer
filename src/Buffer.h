@@ -86,11 +86,6 @@ public:
         return crlf == beginWrite() ? nullptr : crlf;
     }
 
-    // const char* findCRLF(const char* start) const
-    // {
-    //     //TODO
-    // }
-
     void retrieveUntil(const char* end) //更改取出数据标记直到end
     {
         assert(peek() <= end);
@@ -127,7 +122,6 @@ private:
             mWriterIndex = mReaderIndex + readable;
             assert(readable == readableBytes());
         }
-        
     }
 
 private:
@@ -137,7 +131,4 @@ private:
     size_t mWriterIndex;
 };
 
-
-    
-    
 } // namespace lcx

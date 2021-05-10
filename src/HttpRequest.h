@@ -5,11 +5,11 @@
 #include <map>
 #include "Buffer.h"
 
-#define STATIC_ROOT "www" //请求资源目录
+#define STATIC_ROOT "../www" //请求资源目录
 
 namespace lcx{
 
-//TODO
+class Timer;
 
 class HttpRequest{
 public:
@@ -39,8 +39,9 @@ public:
     void appendOutBuffer(const Buffer& buf) { mWriteBuff.append(buf); } //这里误把mWriteBuff写成mReadBuff导致bug
     inline int writeableBytes() { return mWriteBuff.readableBytes(); }
 
-    //TODO
-
+    inline void setTimer(Timer *time) { mTimer = time; }
+    inline Timer* getTimer() {return mTimer; }
+    
     inline void setWorking() {mWorking = true;}  //设置工作状态
     inline void setNoWorking() {mWorking = false;}
     inline bool isWorking() const {return mWorking;} //判断是否在工作
@@ -70,6 +71,7 @@ private:
         if(subPath == "/")
             subPath = "/index.html";
         mURL_Path = STATIC_ROOT + subPath; //设置资源请求路径
+        //std::cout<<mURL_Path<<std::endl;
     }
     //设置URL参数
     void setURLPara(const char* begin, const char* end){ mURL_Para.assign(begin, end); }
@@ -83,7 +85,7 @@ private:
     Buffer mWriteBuff; // 写缓冲区
     bool mWorking; // 判断是否在工作
 
-    //TODO 定时器相关
+    Timer* mTimer;
 
     //报文解析相关
     HttpRequestParseState mState;  //报文解析状态

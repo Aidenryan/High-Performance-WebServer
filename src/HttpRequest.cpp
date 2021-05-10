@@ -3,7 +3,8 @@
 using namespace lcx;
 
 HttpRequest::HttpRequest(int fd) : mFd(fd), 
-                mWorking(false), //TODO
+                mWorking(false), 
+                mTimer(nullptr),
                 mState(ExpectRequestLine), 
                 mMethod(Invalid), 
                 mVersion(Unknown)

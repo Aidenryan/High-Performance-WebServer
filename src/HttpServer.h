@@ -12,9 +12,9 @@ namespace lcx{
 class HttpRequest;
 class Epoll;
 class ThreadPool;
+class TimerManager;
 
 class HttpServer{
-
 public:
     HttpServer(int port, int numThread);
     ~HttpServer();
@@ -30,7 +30,7 @@ private:
     using ListenRequestPtr = std::unique_ptr<HttpRequest>;
     using EpollPtr = std::unique_ptr<Epoll>;
     using ThreadPoolPtr = std::shared_ptr<ThreadPool>;
-    //TODO
+    using TimerManagerPtr = std::unique_ptr<TimerManager>;
 
     int mPort;  //监听端口
     int mListenFd; //监听文件描述符
@@ -38,7 +38,7 @@ private:
     ListenRequestPtr mListenRequst; //监听套接字的HttpRequest实例
     EpollPtr mEpoll;  //epoll实例
     ThreadPoolPtr mThreadPool;  //线程池
-    //TODO
+    TimerManagerPtr mTimerManager;
 };
 
 } // namespace lcx

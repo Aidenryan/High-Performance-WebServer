@@ -5,21 +5,21 @@
 #include "Utils.h"
 #include "ThreadPool.h"
 #include "HttpResponse.h"
-
+#include "Timer.h"
 #include <assert.h>
 #include <sys/socket.h> //accept
 #include <string.h>
 
 using namespace lcx;
 
-//注意智能指针的初始化方法
+//注意智能指针的初始化方法 等号赋值需要加上 make_ptr
 HttpServer::HttpServer(int port, int numThread)
     : mPort(port), 
     mThreadPool(new ThreadPool(numThread)), 
     mListenFd(Utils::createListenFd(port)),
     mListenRequst(new HttpRequest(mListenFd)), 
-    mEpoll(new Epoll()) 
-    //TODO
+    mEpoll(new Epoll()),
+    mTimerManager(new TimerManager())
 {
     assert(mListenFd >= 0);
 }
@@ -49,7 +49,7 @@ void HttpServer::run()
     while(1)
     {
         //超时时间
-        int timeMs = -1; //TODO
+        int timeMs = mTimerManager->getNextExpireTime();
 
         //等待事件发生
         int eventsNum = mEpoll->wait(timeMs);
@@ -60,7 +60,7 @@ void HttpServer::run()
             mEpoll->dealEvent(mListenFd, mThreadPool, eventsNum);
         }
 
-        //TODO
+        mTimerManager->dealExpireTimer();
     }
     
 }
@@ -83,7 +83,7 @@ void HttpServer::acceptNewConnection()
 
         //为新的连接分配资源
         HttpRequest* httpReq = new HttpRequest(acceptFd);
-        //TODO
+        mTimerManager->addTimer(httpReq, CONNECT_TIMEOUT, std::bind(&HttpServer::closeConnection, this, httpReq));
         // 注册连接套接字到epoll（可读，边缘触发，保证任一时刻只被一个线程处理）
         mEpoll->add(acceptFd, httpReq, (EPOLLIN | EPOLLONESHOT));
     }
@@ -93,10 +93,9 @@ void HttpServer::closeConnection(HttpRequest *req)
 {
     int fd = req->fd();
     if(req->isWorking())
-    {
         return;
-    }
-    //TODO
+    
+    mTimerManager->delTimer(req);
     mEpoll->del(fd, req, 0);
 
     // 释放该套接字占用的HttpRequest资源，在HttpRequest析构函数中close(fd)
@@ -108,7 +107,7 @@ void HttpServer::closeConnection(HttpRequest *req)
 //LT模式
 void HttpServer::dealRequest(HttpRequest *req)
 {
-    //TODO
+    mTimerManager->delTimer(req); //这里估计可以优化
     assert(req != nullptr);
     int fd = req->fd();
 
@@ -136,7 +135,7 @@ void HttpServer::dealRequest(HttpRequest *req)
     {
         req->setNoWorking();
         mEpoll->mod(fd, req, EPOLLIN | EPOLLONESHOT);
-        //Todo
+        mTimerManager->addTimer(req, CONNECT_TIMEOUT, std::bind(&HttpServer::closeConnection, this, req));
         return;
     }
 
@@ -167,7 +166,7 @@ void HttpServer::dealRequest(HttpRequest *req)
 //LT模式
 void HttpServer::dealResponse(HttpRequest *req)
 {
-    //TODO
+    mTimerManager->delTimer(req); 
     assert(req != nullptr);
 
     int fd = req->fd();
@@ -177,7 +176,7 @@ void HttpServer::dealResponse(HttpRequest *req)
     {
         req->setNoWorking();
         mEpoll->mod(fd, req, (EPOLLIN | EPOLLONESHOT));
-        //TODO
+        mTimerManager->addTimer(req, CONNECT_TIMEOUT, std::bind(&HttpServer::closeConnection, this, req));
         return;
     }
 
@@ -205,7 +204,7 @@ void HttpServer::dealResponse(HttpRequest *req)
             req->resetParse();
             req->setNoWorking();
             mEpoll->mod(fd, req, (EPOLLIN | EPOLLONESHOT));
-            //TODO
+            mTimerManager->addTimer(req, CONNECT_TIMEOUT, std::bind(&HttpServer::closeConnection, this, req));
         }
         else
         {
@@ -217,7 +216,7 @@ void HttpServer::dealResponse(HttpRequest *req)
 
     mEpoll->mod(fd, req, (EPOLLIN | EPOLLONESHOT | EPOLLOUT));
     req->setNoWorking();    //是因为LT模式，所以设置为不工作了吗？我感觉这里是没有写完呀
-    //TODO
+    mTimerManager->addTimer(req, CONNECT_TIMEOUT, std::bind(&HttpServer::closeConnection, this, req));
     return;
 
 }
