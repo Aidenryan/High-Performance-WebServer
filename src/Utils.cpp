@@ -15,8 +15,8 @@ int Utils::createListenFd(int port)
 
     //创建套接字 (IPv4，TCP，非阻塞)
     int listenFd;
-                                    //用tcp可以吗
-    if((listenFd = ::socket(AF_INET, SOCK_SEQPACKET | SOCK_NONBLOCK, 0)) == -1)
+                
+    if((listenFd = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)) == -1)
     {
         printf("[Utils::createListenFd]fd = %d socket : %s\n", listenFd, strerror(errno));
         return -1;

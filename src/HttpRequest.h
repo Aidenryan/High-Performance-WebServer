@@ -5,7 +5,7 @@
 #include <map>
 #include "Buffer.h"
 
-#define STATIC_ROOT "../www" //请求资源目录
+#define STATIC_ROOT "www" //请求资源目录
 
 namespace lcx{
 

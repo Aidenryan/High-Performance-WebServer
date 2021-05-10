@@ -49,7 +49,7 @@ void HttpServer::run()
     while(1)
     {
         //超时时间
-        int timeMs = 100; //TODO
+        int timeMs = -1; //TODO
 
         //等待事件发生
         int eventsNum = mEpoll->wait(timeMs);

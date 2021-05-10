@@ -51,6 +51,7 @@ size_t Buffer::writefd(int fd, int* writeError)
         }
         else
         {
+            //std::cout<<writen<<"\n";
             printf("[Buffer:writeFd]fd = %d write : %s\n", fd, strerror(errno));
             *writeError = errno;
             return -1;
