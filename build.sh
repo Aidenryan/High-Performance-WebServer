@@ -19,7 +19,7 @@ then
     exit
 fi
 
-rm -fr bin
+#rm -fr bin
 mkdir bin
 rm -fr build
 mkdir build
