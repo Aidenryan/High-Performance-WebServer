@@ -23,6 +23,7 @@ void TimerManager::addTimer(HttpRequest *req, const int &timeout, const TimeoutC
 // 若上锁，反而会因为连续两次上锁造成死锁：dealExpireTimer -> runCallBack -> closeConnection -> delTimer
 void TimerManager::delTimer(HttpRequest *req)
 {
+    //TODO 这里为什么不需要上锁
     assert(req != nullptr);
 
     auto timer = req->getTimer();
